@@ -1,38 +1,34 @@
 <div align="center" text-align="center" style="text-align: center;">
 <h1>string.prototype.safe</h1>
-<p>Make a string safe!</p>
+<p>Make anything safe</p>
 </div>
 
-## First, what's this
-This is a simple library for making a string that can't be XSSed.
-Look at this example:
+A simple function to make anything safe so no one can XSS your website.
 
-```js
-// with a string without HTML
-> "Here's a string without HTML injection".safe()
-< "Here's a string without HTML injection"
-
-// XSS/HTML injection
-> "XSS goes here: <img src='' onerror='alert()'>".safe()
-< "XSS goes here: &lt;img src='' onerror='alert()'&gt;"
 ```
-And what do we need to use this?
-```js
-String.prototype.safe = function () {
-    if (typeof this == "number") {return this}
-    return this.split('').join('')
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-}
+const Safe = function (input) {
+    if (typeof input === "number") {
+        return input;
+    }
+    if (typeof input === "string") {
+        return input
+            .split('')
+            .join('')
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+    if (Array.isArray(input)) {
+        return input.map(Safe);
+    }
+    if (typeof input === "object" && input !== null) {
+        let safeObj = {};
+        for (let key in input) {
+            if (input.hasOwnProperty(key)) {
+                safeObj[Safe(key)] = Safe(input[key]);
+            }
+        }
+        return safeObj;
+    }
+    throw new Error("Unrecognized type");
+};
 ```
-
-Or use as a function:
-```js
-const Safe = function (s) {
-    if (typeof s == "number") {return s}
-    return s.split('').join('')
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-}
-```
-It's a pretty simple script, right? This is a repackage of https://npmjs.com/package/string.prototype.safe, because why an entire npm package when you can copy some code.
